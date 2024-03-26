@@ -7,9 +7,9 @@ import "react-toastify/dist/ReactToastify.css";
 import cookie from "js-cookie";
 import Cookies from "js-cookie";
 
+
 export default function Stats() {
   const { data: session } = useSession();
-
   const [dropdown, setDropdown] = useState(false);
   const [imgurl, setImgUrl] = useState(null);
   const [name, setName] = useState(null);
@@ -177,8 +177,9 @@ export default function Stats() {
 
   const filterDays = useCallback(
     async (days) => {
-      if (days === null) {
+      if (!modifydata.createdat || days === null) {
         setFilter("All");
+        return; // Exit early if modifydata.createdat is undefined or days is null
       } else if (days === 2) {
         setFilter("Yesterday");
       } else if (days === 7) {
@@ -191,27 +192,27 @@ export default function Stats() {
       const currentTime = Date.now();
       const filteredIndexes = [];
       const modifiedData = {};
-
+      console.log("Test",modifydata)
       for (let i = 0; i < modifydata.createdat.length; i++) {
         if (currentTime - modifydata.createdat[i] < milliseconds) {
           filteredIndexes.push(i);
         }
       }
-
+  
       // Push filtered data into modifiedData object
       modifiedData.shortId = filteredIndexes.map(
-        (index) => data.shortId[index]
+        (index) => modifydata.shortId[index]
       );
       modifiedData.qrCodeUrl = filteredIndexes.map(
-        (index) => data.qrCodeUrl[index]
+        (index) => modifydata.qrCodeUrl[index]
       );
       modifiedData.redirectURL = filteredIndexes.map(
-        (index) => data.redirectURL[index]
+        (index) => modifydata.redirectURL[index]
       );
       modifiedData.formattedCreatedAt = filteredIndexes.map(
-        (index) => data.formattedCreatedAt[index]
+        (index) => modifydata.formattedCreatedAt[index]
       );
-
+  
       // Convert shortIdCounts array to object
       modifiedData.shortIdCounts = { ...data.shortIdCounts }; // Copy previous value
       filteredIndexes.forEach((index) => {
@@ -223,8 +224,9 @@ export default function Stats() {
       console.log("Filtered indexes:", filteredIndexes);
       console.log("Modified data:", modifiedData);
     },
-    [data]
+    [data, modifydata.createdat]
   );
+  
 
   useEffect(() => {
     const handleSearchChange = (e) => {
@@ -281,6 +283,7 @@ export default function Stats() {
   useEffect(() => {
     console.log("Page rerendering...", data);
   }, [data, deleteShortUrl,filter]);
+
 
   return (
     <>
@@ -632,7 +635,7 @@ export default function Stats() {
                 </th>
               </tr>
             </thead>
-            <tbody>
+            <tbody >
               {data.shortId.map((shortId, index) => (
                 <tr
                   key={shortId}
@@ -718,9 +721,8 @@ export default function Stats() {
                       </span>
                       <span
                         id={`success-message-${shortId}`}
-                        className={`inline-flex items-center ${
-                          !copied ? "hidden" : ""
-                        }`}
+                        className={`inline-flex items-center ${!copied ? "hidden" : ""
+                          }`}
                       >
                         <svg
                           className="w-3 h-3 text-blue-700 dark:text-blue-500 me-1.5"
@@ -764,6 +766,7 @@ export default function Stats() {
                     </button>
                   </td>
                 </tr>
+
               ))}
             </tbody>
           </table>
